@@ -49,7 +49,6 @@ const numberNames = [
 // const keyOperators =
 
 const elementDisplay = document.getElementById("display");
-console.log("Wonka");
 
 ///Main functionality
 let lastValue = "";
@@ -65,7 +64,10 @@ function updateDisplay(val) {
 addEventListener("keypress", (event) => {
   if (event.key.toLowerCase() == "c") {
     //delete using c
-    currentValue = currentValue.slice(0, currentValue.length - 1);
+    lastOperator = "";
+    currentValue = "";
+    lastValue = "";
+    lastKeyPressed = "c";
     updateDisplay(currentValue);
 
     printValues();
@@ -92,38 +94,56 @@ function numberPressed(number) {
   printValues();
 }
 
-function operationPressed(operator) {
+function operationPressed(currentOperatorPressed) {
   //TODO: Handle negative numbers
 
   ///Handle 1st number as negative
-  if (!currentValue) {
+  let isSignChange = false;
+  if (currentOperatorPressed == SUBTRACK) {
     // if(!lastValue && !lastOperator && !currentValue){
-    currentValue = "-";
+    if (lastOperator == EQUALS) {
+      //Start next operation with negative sign
+      currentValue = "-";
+      lastOperator = "";
+    } else if (currentValue == "-") {
+      currentValue = "";
+      isSignChange = true;
+    } else if (currentValue == "") {
+      currentValue = "-";
+      isSignChange = true;
+    }
+
     updateDisplay(currentValue);
+  }
+
+  if (isSignChange) {
+    lastKeyPressed = currentOperatorPressed;
+    printValues();
     return;
   }
 
-  //HANDLER TWO OPERATOR CLICK IN A ROW: update operator only unless it's a S
+  //HANDLER OPERATOR CLICKED IN A ROW: update operator only unless it
   if (operatorNames.includes(lastKeyPressed) && lastOperator != EQUALS) {
-    console.log({ lastKeyPressed, newPressed: operator });
-    lastOperator = operator;
+    console.log({ lastKeyPressed, newPressed: currentOperatorPressed });
+    lastOperator = currentOperatorPressed;
 
-    ///HANDLER NEGATIVE NUMBERS!
-
+    lastKeyPressed = currentOperatorPressed;
     return;
   }
 
-  calculateResult(operator);
-  lastKeyPressed = operator;
+  calculateResult(currentOperatorPressed);
+  lastKeyPressed = currentOperatorPressed;
 }
 
 function calculateResult(nextOperator) {
   let result;
+  printValues();
   if (lastOperator == EQUALS) {
     lastOperator = ""; //avoid execute an operation
   }
 
-  if (lastOperator && lastValue && currentValue) {
+  // if (lastOperator && lastValue && currentValue) {
+  if (lastOperator && currentValue) {
     console.log("clicked: " + nextOperator);
     result = operatorFunctions[lastOperator](
       Number(lastValue),
