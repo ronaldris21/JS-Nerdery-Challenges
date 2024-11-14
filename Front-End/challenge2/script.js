@@ -46,16 +46,29 @@ const numberNames = [
   "eight",
   "nine",
 ];
-// const keyOperators =
-
-const elementDisplay = document.getElementById("display");
 
 ///Main functionality
-let lastValue = "";
-let currentValue = "";
-let lastOperator = "";
-let lastKeyPressed = "";
+let data = {
+  lastValue: "",
+  lastOperator: "",
+  currentValue: "",
+  lastKeyPressed: "",
+};
 
+function printValues() {
+  // console.log(data); // Uncomment for testing purposes only
+}
+function resetData() {
+  data = {
+    lastValue: "",
+    lastOperator: "",
+    currentValue: "",
+    lastKeyPressed: "",
+  };
+}
+
+//Display results on UI
+const elementDisplay = document.getElementById("display");
 function updateDisplay(val) {
   elementDisplay.innerText = val;
 }
@@ -64,11 +77,8 @@ function updateDisplay(val) {
 addEventListener("keypress", (event) => {
   if (event.key.toLowerCase() == "c") {
     //delete using c
-    lastOperator = "";
-    currentValue = "";
-    lastValue = "";
-    lastKeyPressed = "c";
-    updateDisplay(currentValue);
+    resetData();
+    updateDisplay(data.currentValue);
 
     printValues();
   } else if (!isNaN(event.key)) {
@@ -78,76 +88,77 @@ addEventListener("keypress", (event) => {
   }
 });
 
-function printValues() {
-  console.log({ lastValue, lastOperator, currentValue });
-}
-
 function numberPressed(number) {
-  if (lastOperator === EQUALS) {
-    currentValue = "";
-    lastOperator = "";
+  if (data.lastOperator === EQUALS) {
+    data.currentValue = "";
+    data.lastOperator = "";
   }
-  currentValue = currentValue + number;
-  elementDisplay.innerText = currentValue;
+  data.currentValue = data.currentValue + number;
+  elementDisplay.innerText = data.currentValue;
 
-  lastKeyPressed = number;
+  data.lastKeyPressed = number;
   printValues();
 }
 
 function operationPressed(currentOperatorPressed) {
-  //TODO: Handle negative numbers
+  printValues();
+
+  ///the equals operator serves as clear after returning operation 
+  if (currentOperatorPressed === EQUALS && data.lastOperator === EQUALS) {
+    resetData();
+    updateDisplay("");
+    return;
+  }
 
   ///Handle 1st number as negative
   let isSignChange = false;
-  if (currentOperatorPressed == SUBTRACK) {
-    // if(!lastValue && !lastOperator && !currentValue){
-    if (lastOperator == EQUALS) {
-      //Start next operation with negative sign
-      currentValue = "-";
-      lastOperator = "";
-    } else if (currentValue == "-") {
-      currentValue = "";
+  if (currentOperatorPressed === SUBTRACK) {
+    if (data.lastOperator === EQUALS) {
+      data.currentValue = "-";
       isSignChange = true;
-    } else if (currentValue == "") {
-      currentValue = "-";
+      data.lastOperator = "";
+    } else if (data.currentValue === "-") {
+      data.currentValue = "";
+      isSignChange = true;
+    } else if (data.currentValue === "") {
+      data.currentValue = "-";
       isSignChange = true;
     }
 
-    updateDisplay(currentValue);
+    updateDisplay(data.currentValue);
   }
 
   if (isSignChange) {
-    lastKeyPressed = currentOperatorPressed;
-    printValues();
+    data.lastKeyPressed = currentOperatorPressed;
     return;
   }
 
   //HANDLER OPERATOR CLICKED IN A ROW: update operator only unless it
-  if (operatorNames.includes(lastKeyPressed) && lastOperator != EQUALS) {
-    console.log({ lastKeyPressed, newPressed: currentOperatorPressed });
-    lastOperator = currentOperatorPressed;
-
-    lastKeyPressed = currentOperatorPressed;
+  if (
+    operatorNames.includes(data.lastKeyPressed) &&
+    data.lastOperator !== EQUALS
+  ) {
+    data.lastOperator = currentOperatorPressed;
+    data.lastKeyPressed = currentOperatorPressed;
     return;
   }
 
   calculateResult(currentOperatorPressed);
-  lastKeyPressed = currentOperatorPressed;
+  data.lastKeyPressed = currentOperatorPressed;
+  printValues();
 }
 
 function calculateResult(nextOperator) {
   let result;
-  printValues();
-  if (lastOperator == EQUALS) {
-    lastOperator = ""; //avoid execute an operation
+  if (data.lastOperator === EQUALS) {
+    data.lastOperator = ""; //avoid execute an operation
   }
 
   // if (lastOperator && lastValue && currentValue) {
-  if (lastOperator && currentValue) {
-    console.log("clicked: " + nextOperator);
-    result = operatorFunctions[lastOperator](
-      Number(lastValue),
-      Number(currentValue)
+  if (data.lastOperator && data.currentValue) {
+    result = operatorFunctions[data.lastOperator](
+      Number(data.lastValue),
+      Number(data.currentValue)
     );
 
     if (isNaN(result)) {
@@ -156,22 +167,23 @@ function calculateResult(nextOperator) {
     }
 
     updateDisplay(result ?? "");
+    if (nextOperator === EQUALS) {
+      updateDisplay("=\t\t\t\t " + result);
+    }
 
-    if (lastOperator == EQUALS) {
-      currentValue = lastValue; //for chaining operations with the answer after EQUALS
+    if (data.lastOperator === EQUALS) {
+      data.currentValue = data.lastValue; //for chaining operations with the answer after EQUALS
     } else {
-      currentValue = "";
+      data.currentValue = "";
     }
   }
 
-  lastValue = result ?? currentValue;
-  currentValue = nextOperator == EQUALS ? lastValue : "";
-  lastOperator = nextOperator;
-
-  printValues();
+  data.lastValue = result ?? data.currentValue;
+  data.currentValue = nextOperator == EQUALS ? data.lastValue : "";
+  data.lastOperator = nextOperator;
 }
 
-// NUMBERS
+// LISTENNERS on UI Buttons clicked
 numberNames.forEach((id, index) => {
   document.getElementById(id).addEventListener("click", () => {
     numberPressed(index);
