@@ -14,9 +14,13 @@ Invoking "readableTime(3690)" should return "01:01:30" (HH:MM:SS)
 
 const readableTime = (seconds) => {
   // YOUR CODE HERE...
-  let textSeconds = (seconds % 60).toString().padStart(2, "0");
-  let textMinutes = (Math.floor(seconds / 60) % 60).toString().padStart(2, "0");
-  let textHours = (Math.floor(seconds / 3600) % 24).toString().padStart(2, "0");
+  function format2Digits(number) {
+    return number.toString().padStart(2, "0");
+  }
+
+  let textSeconds = format2Digits(seconds % 60);
+  let textMinutes = format2Digits(Math.floor(seconds / 60) % 60);
+  let textHours = format2Digits(Math.floor(seconds / 3600) % 24);
   return `${textHours}:${textMinutes}:${textSeconds}`;
 };
 
@@ -46,12 +50,13 @@ const COUNTRY_NAMES = ["Germany", "Norway", "Island", "Japan", "Israel"];
 
 const circularArray = (index) => {
   // YOUR CODE HERE...
+  if (index % COUNTRY_NAMES.length === 0) return COUNTRY_NAMES;
+
   let newCountryNames = [];
-
   for (let i = index; i < COUNTRY_NAMES.length + index; i++) {
-    newCountryNames.push(COUNTRY_NAMES[i % COUNTRY_NAMES.length]);
+    let country = COUNTRY_NAMES[i % COUNTRY_NAMES.length];
+    newCountryNames.push(country);
   }
-
   return newCountryNames;
 };
 
@@ -152,7 +157,8 @@ const fibIndex = (n) => {
 
   let a = BigInt(0);
   let b = BigInt(1);
-  let c, index = 1;
+  let c,
+    index = 1;
 
   do {
     //Current fib number
